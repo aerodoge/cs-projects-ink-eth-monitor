@@ -13,6 +13,7 @@ type Config struct {
 	Prometheus PrometheusConfig `mapstructure:"prometheus"`
 	Monitor    MonitorConfig    `mapstructure:"monitor"`
 	Contracts  ContractsConfig  `mapstructure:"contracts"`
+	Emergency  EmergencyConfig  `mapstructure:"emergency"`
 	EthRPC     string           `mapstructure:"eth_rpc"`
 	InkRPC     string           `mapstructure:"ink_rpc"`
 }
@@ -56,6 +57,15 @@ type MonitorConfig struct {
 	PollInterval int `mapstructure:"poll_interval"`
 	RetryTimes   int `mapstructure:"retry_times"`
 	RetryDelay   int `mapstructure:"retry_delay"`
+}
+
+// EmergencyConfig 应急响应配置
+type EmergencyConfig struct {
+	Enabled        bool   `mapstructure:"enabled"`         // 是否启用应急响应
+	PrivateKey     string `mapstructure:"private_key"`     // 委托人私钥
+	SafeAddress    string `mapstructure:"safe_address"`    // Safe多签地址
+	ArgusAddress   string `mapstructure:"argus_address"`   // Argus合约地址
+	WithdrawAmount string `mapstructure:"withdraw_amount"` // 提款金额（wei）
 }
 
 // ChainConfig 链配置

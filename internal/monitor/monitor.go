@@ -11,6 +11,7 @@ import (
 	"cs-projects-ink-eth-monitor/internal/client"
 	"cs-projects-ink-eth-monitor/internal/config"
 	"cs-projects-ink-eth-monitor/internal/contracts"
+	"cs-projects-ink-eth-monitor/internal/emergency"
 	"cs-projects-ink-eth-monitor/internal/metrics"
 	"cs-projects-ink-eth-monitor/pkg/retry"
 )
@@ -20,6 +21,7 @@ type Monitor struct {
 	cfg           *config.Config
 	clientManager *client.ClientManager
 	metrics       *metrics.Metrics
+	emergency     *emergency.Manager
 	logger        *zap.Logger
 	stopChan      chan struct{}
 	ethAccounts   []contracts.Account
@@ -31,6 +33,7 @@ func NewMonitor(
 	cfg *config.Config,
 	clientManager *client.ClientManager,
 	metricsManager *metrics.Metrics,
+	emergencyManager *emergency.Manager,
 	logger *zap.Logger,
 ) *Monitor {
 	// 使用配置中的地址，如果未配置则使用默认值
@@ -45,6 +48,7 @@ func NewMonitor(
 		cfg:           cfg,
 		clientManager: clientManager,
 		metrics:       metricsManager,
+		emergency:     emergencyManager,
 		logger:        logger,
 		stopChan:      make(chan struct{}),
 		ethAccounts: []contracts.Account{
@@ -174,8 +178,19 @@ func (m *Monitor) checkEthereumContract(ctx context.Context, contract contracts.
 		return fmt.Errorf("监控合约失败: %w", err)
 	}
 
+	// 获取指标名称
+	metricName := metrics.GetMetricName("ethereum", contract.Name())
+
 	// 设置指标值
 	m.metrics.SetContractMetric("ethereum", contract.Name(), value)
+
+	// 检查是否触发应急响应
+	if err := m.emergency.CheckAlert(metricName, value); err != nil {
+		m.logger.Error("应急响应执行失败",
+			zap.String("contract", contract.Name()),
+			zap.Error(err),
+		)
+	}
 
 	m.logger.Info("检查Ethereum合约",
 		zap.String("contract", contract.Name()),
@@ -199,8 +214,19 @@ func (m *Monitor) checkInkContract(ctx context.Context, contract contracts.Accou
 		return fmt.Errorf("监控合约失败: %w", err)
 	}
 
+	// 获取指标名称
+	metricName := metrics.GetMetricName("ink", contract.Name())
+
 	// 设置指标值
 	m.metrics.SetContractMetric("ink", contract.Name(), value)
+
+	// 检查是否触发应急响应
+	if err := m.emergency.CheckAlert(metricName, value); err != nil {
+		m.logger.Error("应急响应执行失败",
+			zap.String("contract", contract.Name()),
+			zap.Error(err),
+		)
+	}
 
 	m.logger.Info("检查INK合约",
 		zap.String("contract", contract.Name()),
@@ -238,8 +264,19 @@ func (m *Monitor) checkPriceFeedDeviation(ctx context.Context, contract contract
 		}
 	}
 
+	// 获取指标名称
+	metricName := metrics.GetMetricName("ink", contract.Name())
+
 	// 5. 推送实际偏差值（如 0.03 表示 3% 偏差）
 	m.metrics.SetContractMetric("ink", contract.Name(), deviation)
+
+	// 检查是否触发应急响应
+	if err := m.emergency.CheckAlert(metricName, deviation); err != nil {
+		m.logger.Error("应急响应执行失败",
+			zap.String("contract", contract.Name()),
+			zap.Error(err),
+		)
+	}
 
 	m.logger.Info("检查价格源偏差",
 		zap.String("contract", contract.Name()),

@@ -36,8 +36,8 @@ func NewMetrics(cfg *config.PrometheusConfig, logger *zap.Logger) *Metrics {
 	return m
 }
 
-// getMetricName 根据链和合约名称返回自定义的指标名称
-func getMetricName(chain, contractName string) string {
+// GetMetricName 根据链和合约名称返回自定义的指标名称
+func GetMetricName(chain, contractName string) string {
 	key := fmt.Sprintf("%s_%s", chain, contractName)
 
 	nameMap := map[string]string{
@@ -69,7 +69,7 @@ func (m *Metrics) RegisterContractMetric(chain, contractName string) {
 		return
 	}
 
-	metricName := getMetricName(chain, contractName)
+	metricName := GetMetricName(chain, contractName)
 
 	gauge := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: metricName,

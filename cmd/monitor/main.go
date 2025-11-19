@@ -13,6 +13,7 @@ import (
 
 	"cs-projects-ink-eth-monitor/internal/client"
 	"cs-projects-ink-eth-monitor/internal/config"
+	"cs-projects-ink-eth-monitor/internal/emergency"
 	"cs-projects-ink-eth-monitor/internal/logger"
 	"cs-projects-ink-eth-monitor/internal/metrics"
 	"cs-projects-ink-eth-monitor/internal/monitor"
@@ -57,8 +58,15 @@ func main() {
 	metricsManager := metrics.NewMetrics(&cfg.Prometheus, log)
 	defer metricsManager.Close()
 
+	// 创建应急响应管理器
+	emergencyManager, err := emergency.NewManager(&cfg.Emergency, cfg.InkRPC, log)
+	if err != nil {
+		log.Fatal("创建应急响应管理器失败", zap.Error(err))
+	}
+	defer emergencyManager.Close()
+
 	// 创建监控器
-	m := monitor.NewMonitor(cfg, clientManager, metricsManager, log)
+	m := monitor.NewMonitor(cfg, clientManager, metricsManager, emergencyManager, log)
 
 	// 监听系统信号
 	sigChan := make(chan os.Signal, 1)
