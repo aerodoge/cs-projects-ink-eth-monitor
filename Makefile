@@ -43,7 +43,8 @@ daemon: build
 ## stop: 停止后台服务
 stop:
 	@echo "停止监控服务..."
-	@pkill -f $(BINARY_PATH) && echo "监控服务已停止" || echo "监控服务未运行"
+	@pkill -f $(BINARY_PATH) 2>/dev/null && echo "监控服务已停止" || echo "监控服务未运行"
+	@true
 
 ## clean: 清理构建产物
 clean:
