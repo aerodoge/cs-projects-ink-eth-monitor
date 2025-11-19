@@ -37,8 +37,16 @@ run: build
 daemon: build
 	@echo "后台启动监控服务..."
 	@nohup ./$(BINARY_PATH) -config=$(CONFIG_PATH) > monitor.log 2>&1 &
-	@echo "监控服务已在后台启动，日志输出到 monitor.log"
-	@echo "PID: $$(pgrep -f $(BINARY_PATH))"
+	@sleep 2
+	@if pgrep -f $(BINARY_PATH) > /dev/null; then \
+		echo "✅ 监控服务启动成功"; \
+		echo "PID: $$(pgrep -f $(BINARY_PATH))"; \
+		echo "查看日志: tail -f monitor.log"; \
+	else \
+		echo "❌ 监控服务启动失败"; \
+		echo "查看错误日志: tail monitor.log"; \
+		exit 1; \
+	fi
 
 ## stop: 停止后台服务
 stop:
