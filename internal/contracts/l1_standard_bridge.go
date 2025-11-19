@@ -30,6 +30,6 @@ func (p *InkStandardBridge) Monitor(ctx context.Context, caller *client.Contract
 	if paused {
 		return 1.0, nil
 	}
-	
+
 	return 0.0, nil
 }

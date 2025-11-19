@@ -36,6 +36,27 @@ func NewMetrics(cfg *config.PrometheusConfig, logger *zap.Logger) *Metrics {
 	return m
 }
 
+// getMetricName 根据链和合约名称返回自定义的指标名称
+func getMetricName(chain, contractName string) string {
+	key := fmt.Sprintf("%s_%s", chain, contractName)
+
+	nameMap := map[string]string{
+		"ethereum_super_chain_config":     "ink_eth_monitor_superchain_paused",
+		"ethereum_ink_optimism_portal":    "ink_eth_monitor_optimism_portal_paused",
+		"ethereum_l1_standard_bridge":     "ink_eth_monitor_standard_bridge_paused",
+		"ink_aave_protocol_data_provider": "ink_eth_monitor_tydro_pool_paused",
+		"ink_chaos_push_oracle":           "ink_eth_monitor_oracle_price_spread",
+		"ink_variable_debt_InkWlWETH":     "ink_eth_monitor_remaining_supply",
+	}
+
+	if name, exists := nameMap[key]; exists {
+		return name
+	}
+
+	// 默认使用标准命名方式
+	return fmt.Sprintf("ink_eth_monitor_%s_%s", chain, contractName)
+}
+
 // RegisterContractMetric 注册合约指标
 func (m *Metrics) RegisterContractMetric(chain, contractName string) {
 	m.mu.Lock()
@@ -48,8 +69,10 @@ func (m *Metrics) RegisterContractMetric(chain, contractName string) {
 		return
 	}
 
+	metricName := getMetricName(chain, contractName)
+
 	gauge := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: fmt.Sprintf("chain_monitor_%s_%s", chain, contractName),
+		Name: metricName,
 		Help: fmt.Sprintf("Monitor metric for %s contract %s", chain, contractName),
 		ConstLabels: prometheus.Labels{
 			"chain":    chain,
@@ -63,6 +86,7 @@ func (m *Metrics) RegisterContractMetric(chain, contractName string) {
 	m.logger.Info("注册合约指标",
 		zap.String("chain", chain),
 		zap.String("contract", contractName),
+		zap.String("metric_name", metricName),
 	)
 }
 

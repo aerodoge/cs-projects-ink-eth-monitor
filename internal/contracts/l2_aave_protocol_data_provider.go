@@ -23,7 +23,7 @@ func NewAAveProtocolDataProvider(address common.Address) *AAveProtocolDataProvid
 
 func (a *AAveProtocolDataProvider) Monitor(ctx context.Context, caller *client.ContractCaller) (float64, error) {
 	methodID := crypto.Keccak256([]byte("getPaused(address)"))[:4]
-	
+
 	paramBytes, _ := hex.DecodeString(strings.TrimPrefix(L2WETH, "0x"))
 
 	// 左填充到32字节

@@ -229,7 +229,7 @@ func (m *Monitor) checkPriceFeedDeviation(ctx context.Context, contract contract
 		return fmt.Errorf("获取ETH主网价格失败: %w", err)
 	}
 
-	// 4. 计算价格偏差
+	// 4. 计算价格偏差（绝对值）
 	var deviation float64
 	if ethPrice != 0 {
 		deviation = (inkPrice - ethPrice) / ethPrice
@@ -238,21 +238,15 @@ func (m *Monitor) checkPriceFeedDeviation(ctx context.Context, contract contract
 		}
 	}
 
-	// 5. 判断偏差是否超过阈值（5%）
-	value := 0.0
-	if deviation > 0.05 {
-		value = 1.0 // 告警：价格偏差过大
-	}
-
-	// 6. 设置指标值
-	m.metrics.SetContractMetric("ink", contract.Name(), value)
+	// 5. 推送实际偏差值（如 0.03 表示 3% 偏差）
+	m.metrics.SetContractMetric("ink", contract.Name(), deviation)
 
 	m.logger.Info("检查价格源偏差",
 		zap.String("contract", contract.Name()),
 		zap.Float64("ink_price", inkPrice),
 		zap.Float64("eth_price", ethPrice),
 		zap.Float64("deviation", deviation),
-		zap.Float64("alert_value", value),
+		zap.Float64("deviation_percent", deviation*100),
 	)
 
 	return nil
