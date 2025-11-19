@@ -1,4 +1,4 @@
-.PHONY: all build run clean test lint fmt help install
+.PHONY: all build run daemon stop clean test lint fmt help install
 
 # 变量定义
 BINARY_NAME=monitor
@@ -32,6 +32,18 @@ build:
 run: build
 	@echo "运行监控服务..."
 	./$(BINARY_PATH) -config=$(CONFIG_PATH)
+
+## daemon: 后台运行程序
+daemon: build
+	@echo "后台启动监控服务..."
+	@nohup ./$(BINARY_PATH) -config=$(CONFIG_PATH) > monitor.log 2>&1 &
+	@echo "监控服务已在后台启动，日志输出到 monitor.log"
+	@echo "PID: $$(pgrep -f $(BINARY_PATH))"
+
+## stop: 停止后台服务
+stop:
+	@echo "停止监控服务..."
+	@pkill -f $(BINARY_PATH) && echo "监控服务已停止" || echo "监控服务未运行"
 
 ## clean: 清理构建产物
 clean:
@@ -94,6 +106,8 @@ help:
 	@echo "可用命令:"
 	@echo "  make build        - 编译项目"
 	@echo "  make run          - 编译并运行程序"
+	@echo "  make daemon       - 后台运行程序（日志输出到 monitor.log）"
+	@echo "  make stop         - 停止后台服务"
 	@echo "  make clean        - 清理构建产物"
 	@echo "  make test         - 运行测试"
 	@echo "  make coverage     - 生成测试覆盖率报告"
