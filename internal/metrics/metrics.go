@@ -41,7 +41,7 @@ func (m *Metrics) RegisterContractMetric(chain, contractName string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	key := fmt.Sprintf("%s_%s_%s", chain, contractName)
+	key := fmt.Sprintf("%s_%s", chain, contractName)
 
 	// 如果已经注册过，直接返回
 	if _, exists := m.contractGauges[key]; exists {
@@ -67,11 +67,11 @@ func (m *Metrics) RegisterContractMetric(chain, contractName string) {
 }
 
 // SetContractMetric 设置合约指标值
-func (m *Metrics) SetContractMetric(chain, contractName, metricType string, value float64) {
+func (m *Metrics) SetContractMetric(chain, contractName string, value float64) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	key := fmt.Sprintf("%s_%s_%s", chain, contractName, metricType)
+	key := fmt.Sprintf("%s_%s", chain, contractName)
 
 	if gauge, exists := m.contractGauges[key]; exists {
 		gauge.Set(value)
@@ -108,13 +108,12 @@ func (m *Metrics) Close() error {
 type MetricValue struct {
 	Chain        string
 	ContractName string
-	MetricType   string
 	Value        float64
 }
 
 // BatchSetMetrics 批量设置指标
 func (m *Metrics) BatchSetMetrics(values []MetricValue) {
 	for _, v := range values {
-		m.SetContractMetric(v.Chain, v.ContractName, v.MetricType, v.Value)
+		m.SetContractMetric(v.Chain, v.ContractName, v.Value)
 	}
 }

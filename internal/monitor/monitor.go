@@ -175,7 +175,7 @@ func (m *Monitor) checkEthereumContract(ctx context.Context, contract contracts.
 	}
 
 	// 设置指标值
-	m.metrics.SetContractMetric("ethereum", contract.Name(), contract.Type(), value)
+	m.metrics.SetContractMetric("ethereum", contract.Name(), value)
 
 	m.logger.Info("检查Ethereum合约",
 		zap.String("contract", contract.Name()),
@@ -200,7 +200,7 @@ func (m *Monitor) checkInkContract(ctx context.Context, contract contracts.Accou
 	}
 
 	// 设置指标值
-	m.metrics.SetContractMetric("ink", contract.Name(), contract.Type(), value)
+	m.metrics.SetContractMetric("ink", contract.Name(), value)
 
 	m.logger.Info("检查INK合约",
 		zap.String("contract", contract.Name()),
